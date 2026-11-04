@@ -6,12 +6,18 @@ class Wielomian
 {
 public:
 	Wielomian() { wsp = nullptr; stopien = 0; };
+	~Wielomian();
+
 	double* wsp;
 	int stopien;
 	Wielomian(const char*);
 	Wielomian& operator+=(const Wielomian&);
 	void Pokaz() const;
 };
+
+Wielomian::~Wielomian() {
+	delete[] wsp;
+}
 
 void pomidOdstepy(const char*& napis)
 {
@@ -44,17 +50,7 @@ int OkreslStopien(const char* napis) {
 	return n;
 }
 
-Wielomian alokujPamiec(int s)
-{
-	Wielomian w;
-	w.stopien = s;
-	w.wsp = new double[s + 1]; // (double *)malloc(s+1) * sizeof(double));
 
-	for (int i = 0; i <= s; i++)
-		w.wsp[i] = 0;
-
-	return w;
-}
 
 const char* AnalizujJednomian(const char* napis, Wielomian* w)
 {
@@ -137,16 +133,19 @@ int AnalizujJednomiany(const char* napis, Wielomian* w) {
 	return 1;
 }
 
-int analizujWielomian(const char napis[], Wielomian* w) {
-	int s = OkreslStopien(napis);
-	*w = alokujPamiec(s);
+Wielomian::Wielomian(const char* napis) {
+	stopien = OkreslStopien(napis);
+	wsp = new double[stopien + 1];
 
-	if (!AnalizujJednomiany(napis, w)) {
-		delete[] w->wsp;
-		return 0;
+	for (int i = 0; i <= stopien; i++)
+		wsp[i] = 0;
+
+	if (!AnalizujJednomiany(napis, this)) {
+		delete[] wsp;
+		wsp = new double[1];
+		wsp[0] = 0;
+		stopien = 0;
 	}
-
-	return 1;
 }
 
 void Wielomian::Pokaz() const
@@ -230,14 +229,13 @@ int main()
 	for (int i = 0; i < ile; i++) {
 		cout << przyklady[i] << " = ";
 
-		Wielomian w;
+		Wielomian w(przyklady[i]);
 
-		if (analizujWielomian(przyklady[i], &w)) {
-			w.Pokaz();
-			delete[] w.wsp;
+		if (w.stopien == 0 && w.wsp[0] == 0 && przyklady[i][0] != '0') {
+			cout << "Niepoprawny Wielomian" << endl;
 		}
 		else {
-			cout << "Niepoprawny Wielomian" << endl;
+			w.Pokaz();
 		}
 	}
 
