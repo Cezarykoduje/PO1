@@ -1,103 +1,247 @@
 ﻿#include <iostream>
 
-typedef struct {
-    float *wspolczynnik;
-    int stopien;
-} Wielomian;
+using namespace std;
 
-char* UsunOdstepy(const char* napis) {
-    char* napis2;
-    int y = 0, dlugosc = strlen(napis);
-    napis2 = new char [dlugosc + 1];
-    for (int i = 0; i < dlugosc; i++)
-        if (napis[i] != ' ') 
-            napis2[y++] = napis[i];
-    napis2[y] = 0;
-    return napis2;
+class Wielomian
+{
+public:
+	Wielomian() { wsp = nullptr; stopien = 0; };
+	double* wsp;
+	int stopien;
+	Wielomian(const char*);
+	Wielomian& operator+=(const Wielomian&);
+	void Pokaz() const;
+};
+
+void pomidOdstepy(const char*& napis)
+{
+	while (*napis == ' ' || *napis == '\t')
+		napis++;
 }
 
 int OkreslStopien(const char* napis) {
-    int maksStopien = 0;
-    int stopien = 0;
-    int i = 0;
-    while (napis[i]) {
-        if (napis[i] == 'x') {
-            if (napis[i + 1] == '^') {
-                char* koniecNapisu;
-                stopien = strtol(&napis[i+2], &koniecNapisu, 10);
-                i = koniecNapisu - napis;
-            }
-            else {
-                stopien = 1;
-                i++;
-            }
-            if (stopien > maksStopien)
-                maksStopien = stopien;
-        }
-        else
-            i++;
-    }
-    return maksStopien;
+	int n = 0;
+	const char* temp = napis;
+	while (*temp != '\0') {
+		if (*temp == 'x') {
+			temp++;
+			pomidOdstepy(temp);
+			int s = 1;
+			if (*temp == '^') {
+				temp++;
+				pomidOdstepy(temp);
+				char* r = nullptr;
+				s = std::strtol(temp, &r, 10);
+				temp = r;
+			}
+
+			if (s > n)
+				n = s;
+
+		} else
+		temp++;
+	}
+	return n;
 }
-float* PrzydzielPamiec(int stopien) {
-    float* tab = new float[stopien + 1];
-    for (int i = 0; i <= stopien; i++)
-        tab[i] = 0.0f;
-    return tab;
+
+Wielomian alokujPamiec(int s)
+{
+	Wielomian w;
+	w.stopien = s;
+	w.wsp = new double[s + 1]; // (double *)malloc(s+1) * sizeof(double));
+
+	for (int i = 0; i <= s; i++)
+		w.wsp[i] = 0;
+
+	return w;
 }
 
 const char* AnalizujJednomian(const char* napis, Wielomian* w)
 {
-    int wykladnik = 0;
-    int znak = 1;
-    float wspolczynnik;
+	double liczbaR = 1;
+	int liczbaC = 0;
+	int znak = 1;
 
-    if (*napis == '-')
-    {
-        napis++;
-        znak = -1;
-    }
-    else
-        if (*napis == '+')
-            napis++;
+	pomidOdstepy(napis);
 
-    if (*napis == 'x')
-        wspolczynnik = 1;
-    else {
-        char* koniec;
-        wspolczynnik = strtod(napis, &koniec);
-        napis = koniec;
-    }
+	if (*napis == '-')
+	{
+		napis++;
+		znak = -1;
+	}
+	else if (*napis == '+')
+		napis++;
+
+	pomidOdstepy(napis);
+
+	if (*napis == 'x')
+		liczbaR = 1;
+	else {
+		char* r;
+		liczbaR = std::strtod(napis, &r);
+
+		if (r == napis)
+			return napis;
 
 
-    if (*napis == 'x') {
-        if (*++napis == '^') {
-            char* koniecNapisu;
-            wykladnik = strtol(++napis, &koniecNapisu, 10);
-            napis = koniecNapisu;
-        }
-        else 
-            wykladnik = 1;
+		napis = r;
+	}
 
+	pomidOdstepy(napis);
+
+	if (*napis == 'x') {
+		napis++;
+		pomidOdstepy(napis);
+
+		if (*napis == '^') {
+			napis++;
+			pomidOdstepy(napis);
+
+			char* r;
+			liczbaC = std::strtol(napis, &r, 10);
+
+			if (r == napis)
+				return napis;
+
+			napis = r;
+		}
+		else liczbaC = 1;
+	}
+
+	if (liczbaC < 0 || liczbaC > (int)w->stopien)
+		return napis;
+
+	w->wsp[liczbaC] += znak * liczbaR;
+	pomidOdstepy(napis);
+	return napis;
 }
 
-void AnalizujJednomiany(const char* napis, Wielomian *w){
-    while(*napis)
-        napis = AnalizujJednomian(napis, w);
+int AnalizujJednomiany(const char* napis, Wielomian* w) {
+	pomidOdstepy(napis);
+
+	while (*napis != '\0') {
+		const char* nowy = AnalizujJednomian(napis, w);
+
+		if (nowy == napis)
+			return 0;
+
+		napis = nowy;
+		pomidOdstepy(napis);
+
+		if (*napis == '\0')
+			return 1;
+
+		if (*napis != '+' && *napis != '-')
+			return 0;
+	}
+	return 1;
 }
-Wielomian Analizuj(const char* napis)
+
+int analizujWielomian(const char napis[], Wielomian* w) {
+	int s = OkreslStopien(napis);
+	*w = alokujPamiec(s);
+
+	if (!AnalizujJednomiany(napis, w)) {
+		delete[] w->wsp;
+		return 0;
+	}
+
+	return 1;
+}
+
+void Wielomian::Pokaz() const
 {
-    char* bezOdstepow = UsunOdstepy(napis);
-    Wielomian w;
-    w.stopien = OkreslStopien(bezOdstepow);
-    w.wspolczynnik = PrzydzielPamiec(w.stopien);
-    AnalizujJednomiany(bezOdstepow, &w);
+	bool pierwszy = true;
+
+	for (int i = (int)stopien; i >= 0; i--) {
+		double wspolczynnik = wsp[i];
+
+		if (wspolczynnik == 0)
+			continue;
+
+		if (!pierwszy)
+			cout << (wspolczynnik < 0 ? "-" : "+");
+		else if (wspolczynnik < 0)
+			cout << "-";
+
+		double wartosc = wspolczynnik < 0 ? -wspolczynnik : wspolczynnik;
+
+		if (i == 0 || wartosc != 1)
+			cout << wartosc;
+
+		if (i > 0) {
+			cout << "x";
+
+			if (i > 1) {
+				cout << "^" << i;
+			}
+			
+		}
+		pierwszy = false;
+	}
+
+	if (pierwszy)
+		cout << "0";
+
+	cout << endl;
 }
 
+Wielomian& Wielomian::operator+=(const Wielomian& wi2) {
+	if (stopien < wi2.stopien) {
+		double* nowaT = new double[wi2.stopien + 1];
+		for (int i = 0; i <= stopien; i++)
+			nowaT[i] = wsp[i];
+		for (int i = stopien + 1; i <= wi2.stopien; i++)
+			nowaT[i] = 0;
+		delete[] wsp;
+		wsp = nowaT;
+		stopien = wi2.stopien;
+	}
+	for (int i = 0; i <= wi2.stopien; i++)
+		wsp[i] += wi2.wsp[i];
+
+	return *this;
+}
 
 int main()
 {
-    const char* napis = "x^3-x^2+2x-7.5";
-    Wielomian w = Analizuj(napis);
-    Pokaz(w);
+	const char* przyklady[] = {
+		"x^2-2x+5",
+		"x^3 - x^2 + 2x - 7.5",
+		"2.5x^3 + x - 4",
+		"-x^4 + 3",
+		"7",
+		"0",
+		"x^2 + 3x^2 - x",
+		"x^5 + 2x^2 - 1",
+		"x^2 + 1",
+		"  x ^ 2 + 3 ",
+		"x^2+",
+		"x^2++3",
+		"x^2+-3",
+		"2 3x+1",
+		"x^",
+		"x^2 abc",
+		"x^-2",
+		"" };
+
+	int ile = sizeof(przyklady) / sizeof(przyklady[0]);
+
+	for (int i = 0; i < ile; i++) {
+		cout << przyklady[i] << " = ";
+
+		Wielomian w;
+
+		if (analizujWielomian(przyklady[i], &w)) {
+			w.Pokaz();
+			delete[] w.wsp;
+		}
+		else {
+			cout << "Niepoprawny Wielomian" << endl;
+		}
+	}
+
+
+	return 0;
+
 }
