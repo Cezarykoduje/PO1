@@ -4,15 +4,24 @@ using namespace std;
 
 class Wielomian
 {
-public:
-	Wielomian() { wsp = nullptr; stopien = 0; };
-	~Wielomian();
+	private:
+		double* wsp;
+		int stopien;
 
-	double* wsp;
-	int stopien;
-	Wielomian(const char*);
-	Wielomian& operator+=(const Wielomian&);
-	void Pokaz() const;
+		const char* AnalizujJednomian(const char* napis);
+		int AnalizujJednomiany(const char* napis);
+	public:
+		Wielomian() { wsp = nullptr; stopien = 0; };
+		Wielomian(const char*);
+		~Wielomian();
+		Wielomian& operator+=(const Wielomian&);
+		void Pokaz() const;
+
+		int PobierzStopien() const { return stopien; }
+		double PobierzWspolczynnik(int i) const {
+			if (i >= 0 && i <= stopien) return wsp[i];
+			return 0.0;
+		}
 };
 
 Wielomian::~Wielomian() {
@@ -52,7 +61,7 @@ int OkreslStopien(const char* napis) {
 
 
 
-const char* AnalizujJednomian(const char* napis, Wielomian* w)
+const char* Wielomian::AnalizujJednomian(const char* napis)
 {
 	double liczbaR = 1;
 	int liczbaC = 0;
@@ -104,19 +113,19 @@ const char* AnalizujJednomian(const char* napis, Wielomian* w)
 		else liczbaC = 1;
 	}
 
-	if (liczbaC < 0 || liczbaC > (int)w->stopien)
+	if (liczbaC < 0 || liczbaC > stopien)
 		return napis;
 
-	w->wsp[liczbaC] += znak * liczbaR;
+	wsp[liczbaC] += znak * liczbaR;
 	pomidOdstepy(napis);
 	return napis;
 }
 
-int AnalizujJednomiany(const char* napis, Wielomian* w) {
+int Wielomian::AnalizujJednomiany(const char* napis) {
 	pomidOdstepy(napis);
 
 	while (*napis != '\0') {
-		const char* nowy = AnalizujJednomian(napis, w);
+		const char* nowy = AnalizujJednomian(napis);
 
 		if (nowy == napis)
 			return 0;
@@ -140,7 +149,7 @@ Wielomian::Wielomian(const char* napis) {
 	for (int i = 0; i <= stopien; i++)
 		wsp[i] = 0;
 
-	if (!AnalizujJednomiany(napis, this)) {
+	if (!AnalizujJednomiany(napis)) {
 		delete[] wsp;
 		wsp = new double[1];
 		wsp[0] = 0;
@@ -231,7 +240,7 @@ int main()
 
 		Wielomian w(przyklady[i]);
 
-		if (w.stopien == 0 && w.wsp[0] == 0 && przyklady[i][0] != '0') {
+		if (w.PobierzStopien() == 0 && w.PobierzWspolczynnik(0) == 0 && przyklady[i][0] != '0') {
 			cout << "Niepoprawny Wielomian" << endl;
 		}
 		else {
