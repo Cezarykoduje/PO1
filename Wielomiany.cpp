@@ -14,6 +14,7 @@ class Wielomian
 		Wielomian() { wsp = nullptr; stopien = 0; };
 		Wielomian(const char*);
 		Wielomian(const Wielomian& wzor);
+		Wielomian(const double* tablica, int liczbaElementow);
 		~Wielomian();
 		Wielomian& operator+=(const Wielomian&);
 		void Pokaz() const;
@@ -35,6 +36,22 @@ Wielomian::Wielomian(const Wielomian& wzor) {
 
 	for (int i = 0; i <= stopien; i++) {
 		wsp[i] = wzor.wsp[i];
+	}
+}
+
+Wielomian::Wielomian(const double* tablica, int liczbaElementow) {
+	if (liczbaElementow <= 0) {
+		stopien = 0;
+		wsp = new double[1];
+		wsp[0] = 0;
+	}
+	else {
+		stopien = liczbaElementow - 1;
+		wsp = new double[liczbaElementow];
+
+		for (int i = 0; i < liczbaElementow; i++) {
+			wsp[i] = tablica[i];
+		}
 	}
 }
 
@@ -126,7 +143,7 @@ const char* Wielomian::AnalizujJednomian(const char* napis)
 	if (liczbaC < 0 || liczbaC > stopien)
 		return napis;
 
-	wsp[liczbaC] += znak * liczbaR;
+	wsp[liczbaC] += znak * liczbaR; // wsp declared in class Wielomian
 	pomidOdstepy(napis);
 	return napis;
 }
@@ -257,6 +274,12 @@ int main()
 			w.Pokaz();
 		}
 	}
+
+	double suroweDane[] = { 5.0, -2.0, 3.0 };
+	int ilosc = sizeof(suroweDane) / sizeof(suroweDane[0]);
+
+	Wielomian zTablicy(suroweDane, ilosc);
+	zTablicy.Pokaz();
 
 	return 0;
 
