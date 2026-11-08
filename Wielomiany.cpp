@@ -13,6 +13,7 @@ class Wielomian
 	public:
 		Wielomian() { wsp = nullptr; stopien = 0; };
 		Wielomian(const char*);
+		Wielomian(const Wielomian& wzor);
 		~Wielomian();
 		Wielomian& operator+=(const Wielomian&);
 		void Pokaz() const;
@@ -26,6 +27,15 @@ class Wielomian
 
 Wielomian::~Wielomian() {
 	delete[] wsp;
+}
+
+Wielomian::Wielomian(const Wielomian& wzor) {
+	stopien = wzor.stopien;
+	wsp = new double[stopien + 1];
+
+	for (int i = 0; i <= stopien; i++) {
+		wsp[i] = wzor.wsp[i];
+	}
 }
 
 void pomidOdstepy(const char*& napis)
@@ -247,7 +257,6 @@ int main()
 			w.Pokaz();
 		}
 	}
-
 
 	return 0;
 
