@@ -17,6 +17,7 @@ class Wielomian
 		Wielomian(const double* tablica, int liczbaElementow);
 		~Wielomian();
 		Wielomian& operator+=(const Wielomian&);
+		Wielomian operator+(const Wielomian& wi2) const;
 		void Pokaz() const;
 
 		int PobierzStopien() const { return stopien; }
@@ -53,6 +54,12 @@ Wielomian::Wielomian(const double* tablica, int liczbaElementow) {
 			wsp[i] = tablica[i];
 		}
 	}
+}
+
+Wielomian Wielomian::operator+(const Wielomian& wi2) const {
+	Wielomian wynik(*this);
+	wynik += wi2;
+	return wynik;
 }
 
 void pomidOdstepy(const char*& napis)
@@ -275,11 +282,20 @@ int main()
 		}
 	}
 
-	double suroweDane[] = { 5.0, -2.0, 3.0 };
-	int ilosc = sizeof(suroweDane) / sizeof(suroweDane[0]);
+	// --- TEST KONSTRUKTORA Z TABLICY ---
+	//double suroweDane[] = { 5.0, -2.0, 3.0 };
+	//int ilosc = sizeof(suroweDane) / sizeof(suroweDane[0]);
 
-	Wielomian zTablicy(suroweDane, ilosc);
-	zTablicy.Pokaz();
+	//Wielomian zTablicy(suroweDane, ilosc);
+	//zTablicy.Pokaz();
+
+	// --- TEST OPERATORA + ---
+	//Wielomian w1("x^2 + 2x");
+	//Wielomian w2("3x^2 + 5");
+
+	//cout << "Test operatora + :" << endl;
+	//Wielomian suma = w1 + w2;
+	//suma.Pokaz();
 
 	return 0;
 
