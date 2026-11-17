@@ -26,6 +26,8 @@ class Wielomian
 		Wielomian operator*(const Wielomian& wi2) const;
 		Wielomian& operator/=(const Wielomian& wi2);
 		Wielomian operator/(const Wielomian& wi2) const;
+		double operator()(double x);
+		double operator[](int s);
 		void Pokaz() const;
 
 		int PobierzStopien() const { return stopien; }
@@ -128,7 +130,7 @@ const char* Wielomian::AnalizujJednomian(const char* napis)
 	if (*napis == 'x')
 		liczbaR = 1;
 	else {
-		char* r;
+		char* r=nullptr;
 		liczbaR = std::strtod(napis, &r);
 
 		if (r == napis)
@@ -148,7 +150,7 @@ const char* Wielomian::AnalizujJednomian(const char* napis)
 			napis++;
 			pomidOdstepy(napis);
 
-			char* r;
+			char* r=nullptr;
 			liczbaC = std::strtol(napis, &r, 10);
 
 			if (r == napis)
@@ -162,7 +164,7 @@ const char* Wielomian::AnalizujJednomian(const char* napis)
 	if (liczbaC < 0 || liczbaC > stopien)
 		return napis;
 
-	wsp[liczbaC] += znak * liczbaR; // wsp declared in class Wielomian
+	wsp[liczbaC] += znak * liczbaR;
 	pomidOdstepy(napis);
 	return napis;
 }
@@ -358,6 +360,23 @@ Wielomian& Wielomian::operator/=(const Wielomian& wi2) {
 	return *this;
 }
 
+double Wielomian::operator()(double x) {
+	double wartosc = wsp[stopien];
+	for (int i = stopien-1; i>=0 ;i--) {
+		wartosc *= x;
+		wartosc += wsp[i];
+	}
+	return wartosc;
+}
+
+double Wielomian::operator[](int s) {
+	if (s >= 0 && s <= stopien) {
+		return wsp[s];
+	}
+	else
+		return 0.0;
+}
+
 Wielomian Wielomian::operator/(const Wielomian& wi2) const {
 	Wielomian wynik(*this);
 	wynik /= wi2;
@@ -416,6 +435,13 @@ int main()
 			w.Pokaz();
 		}
 	}
+
+	// --- TEST OPERATORA () i [] ---
+
+	//Wielomian w("2x^5 - 7x^4 + 3x^2 - 2");
+	//cout << w.operator[](-1) << endl;
+	//cout << w.operator()(-1) << endl;
+
 
 	// --- TEST KONSTRUKTORA Z TABLICY ---
 	//double suroweDane[] = { 5.0, -2.0, 3.0 };
