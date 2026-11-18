@@ -1,41 +1,7 @@
-﻿#include <iostream>
+﻿#include "Wielomiany.h"
+#include <iostream>
 
 using namespace std;
-
-class Wielomian
-{
-	private:
-		double* wsp;
-		int stopien;
-		void ZaktualizujStopien();
-
-		const char* AnalizujJednomian(const char* napis);
-		int AnalizujJednomiany(const char* napis);
-	public:
-		Wielomian() { wsp = nullptr; stopien = 0; };
-		Wielomian(const char*);
-		Wielomian(const Wielomian& wzor);
-		Wielomian(const double* tablica, int liczbaElementow);
-		Wielomian(double wyrazWolny);
-		~Wielomian();
-		Wielomian& operator+=(const Wielomian&);
-		Wielomian operator+(const Wielomian& wi2) const;
-		Wielomian& operator-=(const Wielomian& wi2);
-		Wielomian operator-(const Wielomian& wi2) const;
-		Wielomian& operator*=(const Wielomian& wi2);
-		Wielomian operator*(const Wielomian& wi2) const;
-		Wielomian& operator/=(const Wielomian& wi2);
-		Wielomian operator/(const Wielomian& wi2) const;
-		double operator()(double x);
-		double operator[](int s);
-		void Pokaz() const;
-
-		int PobierzStopien() const { return stopien; }
-		double PobierzWspolczynnik(int i) const {
-			if (i >= 0 && i <= stopien) return wsp[i];
-			return 0.0;
-		}
-};
 
 Wielomian::~Wielomian() {
 	delete[] wsp;
@@ -360,6 +326,28 @@ Wielomian& Wielomian::operator/=(const Wielomian& wi2) {
 	return *this;
 }
 
+Wielomian Wielomian::operator/(const Wielomian& wi2) const {
+	Wielomian wynik(*this);
+	wynik /= wi2;
+	return wynik;
+}
+
+//Wielomian operator+(double lewa, const Wielomian& prawa) {
+//	return Wielomian(lewa) + prawa;
+//}
+//
+//Wielomian operator-(double lewa, const Wielomian& prawa) {
+//	return Wielomian(lewa) - prawa;
+//}
+//
+//Wielomian operator*(double lewa, const Wielomian& prawa) {
+//	return Wielomian(lewa) * prawa;
+//}
+//
+//Wielomian operator/(double lewa, const Wielomian& prawa) {
+//	return Wielomian(lewa) / prawa;
+//}
+
 double Wielomian::operator()(double x) {
 	double wartosc = wsp[stopien];
 	for (int i = stopien-1; i>=0 ;i--) {
@@ -376,66 +364,6 @@ double Wielomian::operator[](int s) {
 	else
 		return 0.0;
 }
-
-Wielomian Wielomian::operator/(const Wielomian& wi2) const {
-	Wielomian wynik(*this);
-	wynik /= wi2;
-	return wynik;
-}
-
-Wielomian operator+(double lewa, const Wielomian& prawa) {
-	return Wielomian(lewa) + prawa;
-}
-
-Wielomian operator-(double lewa, const Wielomian& prawa) {
-	return Wielomian(lewa) - prawa;
-}
-
-Wielomian operator*(double lewa, const Wielomian& prawa) {
-	return Wielomian(lewa) * prawa;
-}
-
-Wielomian operator/(double lewa, const Wielomian& prawa) {
-	return Wielomian(lewa) / prawa;
-}
-
-int main()
-{
-	const char* przyklady[] = {
-		"x^2-2x+5",
-		"x^3 - x^2 + 2x - 7.5",
-		"2.5x^3 + x - 4",
-		"-x^4 + 3",
-		"7",
-		"0",
-		"x^2 + 3x^2 - x",
-		"x^5 + 2x^2 - 1",
-		"x^2 + 1",
-		"  x ^ 2 + 3 ",
-		"x^2+",
-		"x^2++3",
-		"x^2+-3",
-		"2 3x+1",
-		"x^",
-		"x^2 abc",
-		"x^-2",
-		"" };
-
-	int ile = sizeof(przyklady) / sizeof(przyklady[0]);
-
-	for (int i = 0; i < ile; i++) {
-		cout << przyklady[i] << " = ";
-
-		Wielomian w(przyklady[i]);
-
-		if (w.PobierzStopien() == 0 && w.PobierzWspolczynnik(0) == 0 && przyklady[i][0] != '0') {
-			cout << "Niepoprawny Wielomian" << endl;
-		}
-		else {
-			w.Pokaz();
-		}
-	}
-
 	// --- TEST OPERATORA () i [] ---
 
 	//Wielomian w("2x^5 - 7x^4 + 3x^2 - 2");
@@ -494,6 +422,5 @@ int main()
 	//Wielomian t2 = 5.0 - wTest;
 	//t2.Pokaz();
 
-	return 0;
-
-}
+// reszta z dzieleniem operator sprzac je ze sobą
+// w konstruktorze kopiujacym wykorzystac operator przypisania
