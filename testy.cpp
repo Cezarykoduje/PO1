@@ -40,7 +40,6 @@ int main() {
 	}
 	cout << "\n--- TESTY ---" << endl;
 
-	// 1. Test operatorów + - * / % oraz kontekstów z double
 	Wielomian a("x^2 + 5x + 6");
 	Wielomian b("x + 2");
 	cout << "a = " << a << ", b = " << b << endl << endl;
@@ -49,18 +48,15 @@ int main() {
 	cout << "10.5 + b = " << (10.5 + b) << endl;
 	cout << "b * 2.0 = " << (b * 2.0) << endl << endl;
 
-	// 2. Test operatora przypisania (=) i konstruktora kopiującego
 	Wielomian kopia = a;
 	Wielomian przypisany;
 	przypisany = b;
 	cout << "Kopia a: " << kopia << ", Przypisany b: " << przypisany << endl << endl;
 
-	// 3. Test Pochodnej, Hornera () oraz indeksu []
 	cout << "Pochodna z a: " << a.Pochodna() << endl;
 	cout << "Wartosc a(2) schematem Hornera: " << a(2.0) << endl;
 	cout << "Wspolczynnik przy x^1 w a: " << a[1] << endl << endl;
 
-	// 4. Test strumienia wejściowego >>
 	Wielomian zKlawiatury;
 	cout << "Podaj wlasny wielomian: ";
 	cin >> zKlawiatury;

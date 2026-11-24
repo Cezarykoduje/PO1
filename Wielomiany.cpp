@@ -82,8 +82,7 @@ const char* Wielomian::AnalizujJednomian(const char* napis)
 
 	pomidOdstepy(napis);
 
-	if (*napis == '-')
-	{
+	if (*napis == '-') {
 		napis++;
 		znak = -1;
 	}
@@ -100,7 +99,6 @@ const char* Wielomian::AnalizujJednomian(const char* napis)
 
 		if (r == napis)
 			return napis;
-
 
 		napis = r;
 	}
