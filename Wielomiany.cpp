@@ -1,5 +1,7 @@
 ﻿#include "Wielomiany.h"
 #include <iostream>
+#include <string>
+#include <cstdlib>
 
 using namespace std;
 
@@ -8,12 +10,9 @@ Wielomian::~Wielomian() {
 }
 
 Wielomian::Wielomian(const Wielomian& wzor) {
-	stopien = wzor.stopien;
-	wsp = new double[stopien + 1];
-
-	for (int i = 0; i <= stopien; i++) {
-		wsp[i] = wzor.wsp[i];
-	}
+	wsp = nullptr;
+	stopien = 0;
+	*this = wzor;
 }
 
 Wielomian::Wielomian(const double* tablica, int liczbaElementow) {
@@ -169,10 +168,10 @@ Wielomian::Wielomian(const char* napis) {
 		wsp[0] = 0;
 		stopien = 0;
 	}
+	ZaktualizujStopien();
 }
 
-void Wielomian::Pokaz() const
-{
+void Wielomian::Pokaz(ostream& os) const {
 	bool pierwszy = true;
 
 	for (int i = (int)stopien; i >= 0; i--) {
@@ -182,36 +181,46 @@ void Wielomian::Pokaz() const
 			continue;
 
 		if (!pierwszy)
-			cout << (wspolczynnik < 0 ? "-" : "+");
+			os << (wspolczynnik < 0 ? "-" : "+");
 		else if (wspolczynnik < 0)
-			cout << "-";
+			os << "-";
 
 		double wartosc = wspolczynnik < 0 ? -wspolczynnik : wspolczynnik;
 
 		if (i == 0 || wartosc != 1)
-			cout << wartosc;
+			os << wartosc;
 
 		if (i > 0) {
-			cout << "x";
+			os << "x";
 
 			if (i > 1) {
-				cout << "^" << i;
+				os << "^" << i;
 			}
-			
+
 		}
 		pierwszy = false;
 	}
 
 	if (pierwszy)
-		cout << "0";
-
-	cout << endl;
+		os << "0";
 }
 
-Wielomian Wielomian::operator+(const Wielomian& wi2) const {
-	Wielomian wynik(*this);
-	wynik += wi2;
-	return wynik;
+Wielomian& Wielomian::operator=(const Wielomian& wzor) {
+	if (this == &wzor) return *this;
+
+	delete[] wsp;
+
+	stopien = wzor.stopien;
+	if (wzor.wsp == nullptr) {
+		wsp = nullptr;
+	}
+	else {
+		wsp = new double[stopien + 1];
+		for (int i = 0; i <= stopien; i++) {
+			wsp[i] = wzor.wsp[i];
+		}
+	}
+	return *this;
 }
 
 Wielomian& Wielomian::operator+=(const Wielomian& wi2) {
@@ -227,7 +236,7 @@ Wielomian& Wielomian::operator+=(const Wielomian& wi2) {
 	}
 	for (int i = 0; i <= wi2.stopien; i++)
 		wsp[i] += wi2.wsp[i];
-
+	ZaktualizujStopien();
 	return *this;
 }
 
@@ -244,13 +253,8 @@ Wielomian& Wielomian::operator-=(const Wielomian& wi2) {
 	}
 	for (int i = 0; i <= wi2.stopien; i++)
 		wsp[i] -= wi2.wsp[i];
+	ZaktualizujStopien();
 	return *this;
-}
-
-Wielomian Wielomian::operator-(const Wielomian& wi2) const {
-	Wielomian wynik(*this);
-	wynik -= wi2;
-	return wynik;
 }
 
 Wielomian& Wielomian::operator*=(const Wielomian& wi2) {
@@ -280,23 +284,15 @@ Wielomian& Wielomian::operator*=(const Wielomian& wi2) {
 	return *this;
 }
 
-Wielomian Wielomian::operator*(const Wielomian& wi2) const {
-	Wielomian wynik(*this);
-	wynik *= wi2;
-	return wynik;
-}
-
-Wielomian& Wielomian::operator/=(const Wielomian& wi2) {
-	if (wi2.stopien == 0 && wi2.wsp[0] == 0) {
+Wielomian Wielomian::PodzielZReszta(const Wielomian& wi2, Wielomian& reszta) const {
+	if (wi2.stopien == 0 && wi2.PobierzWspolczynnik(0) == 0) {
 		cout << "Blad: Dzielenie przez 0!" << endl;
-		return *this;
+		reszta = Wielomian(0.0);
+		return reszta;
 	}
 	if (stopien < wi2.stopien) {
-		delete[] wsp;
-		stopien = 0;
-		wsp = new double[1];
-		wsp[0] = 0;
-		return *this;
+		reszta = *this;
+		return Wielomian(0.0);
 	}
 
 	int stopienWyniku = stopien - wi2.stopien;
@@ -304,51 +300,62 @@ Wielomian& Wielomian::operator/=(const Wielomian& wi2) {
 	for (int i = 0; i <= stopienWyniku; i++)
 		nowyWsp[i] = 0;
 
-	Wielomian reszta(*this);
+	reszta = *this;
 	while (reszta.stopien >= wi2.stopien) {
 		int aktualnyStopien = reszta.stopien - wi2.stopien;
 		double mnoznik = reszta.wsp[reszta.stopien] / wi2.wsp[wi2.stopien];
-		
+
 		nowyWsp[aktualnyStopien] = mnoznik;
-		
+
 		for (int i = 0; i <= wi2.stopien; i++)
 			reszta.wsp[aktualnyStopien + i] -= mnoznik * wi2.wsp[i];
-	
+
 		reszta.ZaktualizujStopien();
 
 		if (reszta.stopien == 0 && reszta.wsp[0] == 0)
 			break;
 	}
-	delete[] wsp;
-	wsp = nowyWsp;
-	stopien = stopienWyniku;
 
+	Wielomian iloraz(nowyWsp, stopienWyniku + 1);
+	delete[] nowyWsp;
+	iloraz.ZaktualizujStopien();
+	return iloraz;
+}
+
+Wielomian& Wielomian::operator/=(const Wielomian& wi2) {
+	Wielomian reszta;
+	*this = PodzielZReszta(wi2, reszta);
 	return *this;
 }
 
-Wielomian Wielomian::operator/(const Wielomian& wi2) const {
-	Wielomian wynik(*this);
-	wynik /= wi2;
-	return wynik;
+Wielomian& Wielomian::operator%=(const Wielomian& wi2) {
+	Wielomian reszta;
+	PodzielZReszta(wi2, reszta);
+	*this = reszta;
+	return *this;
 }
 
-//Wielomian operator+(double lewa, const Wielomian& prawa) {
-//	return Wielomian(lewa) + prawa;
-//}
-//
-//Wielomian operator-(double lewa, const Wielomian& prawa) {
-//	return Wielomian(lewa) - prawa;
-//}
-//
-//Wielomian operator*(double lewa, const Wielomian& prawa) {
-//	return Wielomian(lewa) * prawa;
-//}
-//
-//Wielomian operator/(double lewa, const Wielomian& prawa) {
-//	return Wielomian(lewa) / prawa;
-//}
+Wielomian operator+(Wielomian lewy, const Wielomian& prawy) {
+	return lewy += prawy;
+}
 
-double Wielomian::operator()(double x) {
+Wielomian operator-(Wielomian lewy, const Wielomian& prawy) {
+	return lewy -= prawy;
+}
+
+Wielomian operator*(Wielomian lewy, const Wielomian& prawy) {
+	return lewy *= prawy;
+}
+
+Wielomian operator/(Wielomian lewy, const Wielomian& prawy) {
+	return lewy /= prawy;
+}
+
+Wielomian operator%(Wielomian lewy, const Wielomian& prawy) {
+	return lewy %= prawy;
+}
+
+double Wielomian::operator()(double x) const {
 	double wartosc = wsp[stopien];
 	for (int i = stopien-1; i>=0 ;i--) {
 		wartosc *= x;
@@ -357,70 +364,34 @@ double Wielomian::operator()(double x) {
 	return wartosc;
 }
 
-double Wielomian::operator[](int s) {
+double Wielomian::operator[](int s) const {
 	if (s >= 0 && s <= stopien) {
 		return wsp[s];
 	}
 	else
 		return 0.0;
 }
-	// --- TEST OPERATORA () i [] ---
 
-	//Wielomian w("2x^5 - 7x^4 + 3x^2 - 2");
-	//cout << w.operator[](-1) << endl;
-	//cout << w.operator()(-1) << endl;
+ostream& operator<<(ostream& os, const Wielomian& w) {
+	w.Pokaz(os);
+	return os;
+}
 
+istream& operator>>(istream& is, Wielomian& w) {
+	string bufor;
+	getline(is >> ws, bufor);
+	w = Wielomian(bufor.c_str());
+	return is;
+}
 
-	// --- TEST KONSTRUKTORA Z TABLICY ---
-	//double suroweDane[] = { 5.0, -2.0, 3.0 };
-	//int ilosc = sizeof(suroweDane) / sizeof(suroweDane[0]);
+Wielomian Wielomian::Pochodna() const {
+	if (stopien == 0) return Wielomian(0.0);
 
-	//Wielomian zTablicy(suroweDane, ilosc);
-	//zTablicy.Pokaz();
-
-	// --- TEST OPERATORA + ---
-	//Wielomian w1("x^2 + 2x");
-	//Wielomian w2("3x^2 + 5");
-
-	//cout << "Test operatora + :" << endl;
-	//Wielomian suma = w1 + w2;
-	//suma.Pokaz();
-
-	// --- TEST OPERATORA - ---
-	//Wielomian o1("x^2 + 2x");
-	//Wielomian o2("3x^2 + 5");
-
-	//cout << "Test operatora - :" << endl;
-	//Wielomian roznica = o1 - o2;
-	//roznica.Pokaz();
-
-	// --- TEST OPERATORA * ---
-	//Wielomian m1("x^2 + 2x");
-	//Wielomian m2("3x^2 + 5");
-
-	//cout << "Test operatora * :" << endl;
-	//Wielomian iloczyn = m1 * m2;
-	//iloczyn.Pokaz();
-
-	/* --- TEST OPERATORA / ---
-	Wielomian d1("x^2 + 5x + 6");
-	Wielomian d2("x + 2");
-
-	cout << "Test dzielenia :" << endl;
-	Wielomian iloraz = d1 / d2;
-	iloraz.Pokaz();*/
-
-	// --- TEST LICZBA + WIELOMIAN i LICZBA - WIELOMIAN ---
-
-	//Wielomian wTest("x^2 + 2x");
-	
-	//cout << "Test: Wielomian + liczba (wTest + 10.5):" << endl;
-	//Wielomian t1 = wTest + 10.5;
-	//t1.Pokaz();
-
-	//cout << "Test: liczba - Wielomian (5.0 - wTest):" << endl;
-	//Wielomian t2 = 5.0 - wTest;
-	//t2.Pokaz();
-
-// reszta z dzieleniem operator sprzac je ze sobą
-// w konstruktorze kopiujacym wykorzystac operator przypisania
+	double* nowaT = new double[stopien];
+	for (int i = 1; i <= stopien; i++) {
+		nowaT[i - 1] = wsp[i] * i;
+	}
+	Wielomian wynik(nowaT, stopien);
+	delete[] nowaT;
+	return wynik;
+}
