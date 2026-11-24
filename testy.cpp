@@ -38,6 +38,7 @@ int main() {
 			cout << endl;
 		}
 	}
+
 	cout << "\n--- TESTY ---" << endl;
 
 	Wielomian a("x^2 + 5x + 6");
